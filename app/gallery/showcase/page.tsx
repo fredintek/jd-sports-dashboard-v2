@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef, useState } from "react";
 import {
   Card,
   CardContent,
@@ -11,21 +12,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Trash2 } from "lucide-react";
-import React, { useRef, useState } from "react";
 
-type Props = {};
-
-type HeroSlide = {
+type Showcase = {
   id: number;
-  image?: File;
-  shopNow?: boolean;
+  image?: File | null;
+  imageUrl?: string;
+  shopNow: boolean;
   link?: string;
 };
 
-const HeroSection = (props: Props) => {
-  const [form, setForm] = useState<Partial<HeroSlide>>({ shopNow: false });
-  const [slides, setSlides] = useState<HeroSlide[]>([]);
+const LooksSection = () => {
+  const [form, setForm] = useState<Partial<Showcase>>({ shopNow: false });
+  const [showcases, setShowcases] = useState<Showcase[]>([]);
   const [editingId, setEditingId] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -38,73 +36,88 @@ const HeroSection = (props: Props) => {
     }
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setForm({
+        ...form,
+        image: file,
+        imageUrl: URL.createObjectURL(file),
+      });
+    }
+  };
+
   const handleSave = () => {
     if (!form.image) {
-      alert("Please select an image");
+      alert("Please upload an image");
       return;
     }
 
     if (form.shopNow && !form.link) {
-      alert("Please fill the Shop Now link");
+      alert("Please provide a link for Shop Now");
       return;
     }
 
     if (editingId) {
-      setSlides((prev) =>
+      setShowcases((prev) =>
         prev.map((s) =>
-          s.id === editingId ? { ...s, ...(form as HeroSlide) } : s
+          s.id === editingId ? { ...s, ...(form as Showcase) } : s
         )
       );
       setEditingId(null);
     } else {
-      setSlides((prev) => [
+      setShowcases((prev) => [
         ...prev,
-        { ...(form as HeroSlide), id: Date.now() },
+        { ...(form as Showcase), id: Date.now() },
       ]);
     }
 
     resetForm();
   };
 
-  const handleEdit = (slide: HeroSlide) => {
-    setForm(slide);
-    setEditingId(slide.id);
+  const handleEdit = (item: Showcase) => {
+    setForm(item);
+    setEditingId(item.id);
   };
 
   const handleDelete = (id: number) => {
-    setSlides((prev) => prev.filter((s) => s.id !== id));
+    setShowcases((prev) => prev.filter((item) => item.id !== id));
     if (editingId === id) resetForm();
   };
 
   return (
     <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div className="w-full">
+      <div>
         <Card>
           <CardHeader>
-            <CardTitle>Create / Edit Hero Slide</CardTitle>
+            <CardTitle>Showcase</CardTitle>
             <CardDescription>
-              Upload image and optionally set a Shop Now button
+              Upload an image and configure the "Shop Now" option
             </CardDescription>
           </CardHeader>
 
           <CardContent className="grid gap-4">
+            {/* Image Upload */}
             <div className="grid gap-2">
-              <Label htmlFor="image">Slider Image</Label>
+              <Label>Image</Label>
               <Input
                 ref={fileInputRef}
-                id="image"
                 type="file"
                 accept="image/*"
-                onChange={(e) => {
-                  if (e.target.files && e.target.files[0]) {
-                    setForm({ ...form, image: e.target.files[0] });
-                  }
-                }}
+                onChange={handleImageChange}
               />
+              {form.imageUrl && (
+                <img
+                  src={form.imageUrl}
+                  alt="preview"
+                  className="h-32 w-32 object-cover rounded"
+                />
+              )}
             </div>
 
+            {/* Shop Now Toggle */}
             <div className="flex items-center gap-2">
-              <Label>Shop Now Button</Label>
+              <Label>Shop Now</Label>
               <Switch
                 checked={form.shopNow || false}
                 onCheckedChange={(checked) =>
@@ -113,6 +126,7 @@ const HeroSection = (props: Props) => {
               />
             </div>
 
+            {/* Shop Now Link */}
             {form.shopNow && (
               <div className="grid gap-2">
                 <Label htmlFor="link">Shop Now Link</Label>
@@ -124,9 +138,10 @@ const HeroSection = (props: Props) => {
               </div>
             )}
 
+            {/* Buttons */}
             <div className="flex gap-2">
               <Button onClick={handleSave}>
-                {editingId ? "Update Slide" : "Save Slide"}
+                {editingId ? "Update Showcase" : "Save Showcase"}
               </Button>
               <Button variant="outline" onClick={resetForm}>
                 Reset
@@ -135,37 +150,48 @@ const HeroSection = (props: Props) => {
           </CardContent>
         </Card>
 
-        {/* View created slides */}
-        {slides.length > 0 && (
+        {/* Created Showcases */}
+        {showcases.length > 0 && (
           <Card className="mt-4">
             <CardHeader>
-              <CardTitle>Created Slides</CardTitle>
-              <CardDescription>Edit or delete slides below</CardDescription>
+              <CardTitle>Created Showcases</CardTitle>
+              <CardDescription>Preview, edit or delete</CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
-              {slides.map((slide) => (
+              {showcases.map((item) => (
                 <div
-                  key={slide.id}
+                  key={item.id}
                   className="flex items-center justify-between border rounded px-3 py-2"
                 >
-                  <div className="flex flex-col gap-1">
-                    <span className="font-semibold">{slide.image?.name}</span>
-                    {slide.shopNow && (
-                      <span className="text-sm text-muted-foreground">
-                        Shop Now: {slide.link}
-                      </span>
+                  <div className="flex items-center gap-4">
+                    {item.imageUrl && (
+                      <img
+                        src={item.imageUrl}
+                        alt="preview"
+                        className="h-16 w-16 object-cover rounded"
+                      />
                     )}
+                    <div>
+                      <p className="font-semibold">
+                        Shop Now: {item.shopNow ? "Yes" : "No"}
+                      </p>
+                      {item.shopNow && (
+                        <p className="text-sm text-muted-foreground">
+                          Link: {item.link}
+                        </p>
+                      )}
+                    </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button size="sm" onClick={() => handleEdit(slide)}>
+                    <Button size="sm" onClick={() => handleEdit(item)}>
                       Edit
                     </Button>
                     <Button
                       size="sm"
                       variant="destructive"
-                      onClick={() => handleDelete(slide.id)}
+                      onClick={() => handleDelete(item.id)}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      Delete
                     </Button>
                   </div>
                 </div>
@@ -178,4 +204,4 @@ const HeroSection = (props: Props) => {
   );
 };
 
-export default HeroSection;
+export default LooksSection;

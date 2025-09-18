@@ -147,7 +147,7 @@ const GenderSection = (props: Props) => {
   };
 
   return (
-    <section className="grid grid-cols-2 gap-6">
+    <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div className="w-full">
         <Card>
           <CardHeader>

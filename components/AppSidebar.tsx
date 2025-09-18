@@ -113,12 +113,12 @@ const items = [
     children: [
       {
         title: "Showcase",
-        url: "#",
+        url: "/gallery/showcase",
         icon: Eye,
       },
       {
         title: "Social Media",
-        url: "#",
+        url: "/gallery/social-media",
         icon: QrCode,
       },
     ],
@@ -130,27 +130,27 @@ const items = [
     children: [
       {
         title: "Icons",
-        url: "#",
+        url: "/footer/icons",
         icon: BrickWall,
       },
       {
         title: "Newsletter",
-        url: "#",
+        url: "/footer/newsletter",
         icon: Newspaper,
       },
       {
         title: "Privacy Info",
-        url: "#",
+        url: "/footer/privacy-info",
         icon: HatGlasses,
       },
       {
         title: "Links",
-        url: "#",
+        url: "/footer/links",
         icon: Link2,
       },
       {
         title: "Advertisement",
-        url: "#",
+        url: "/footer/advertisement",
         icon: Megaphone,
       },
     ],

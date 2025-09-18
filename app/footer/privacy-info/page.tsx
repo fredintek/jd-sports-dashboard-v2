@@ -12,18 +12,15 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import React, { useState } from "react";
 
-type Props = {};
-
-type Item = {
+type PrivacyInfo = {
   id: number;
-  title: string;
-  subtitle: string;
+  text: string;
   url: string;
 };
 
-const Page = (props: Props) => {
-  const [form, setForm] = useState<Partial<Item>>({});
-  const [items, setItems] = useState<Item[]>([]);
+const PrivacyInfoSection = () => {
+  const [form, setForm] = useState<Partial<PrivacyInfo>>({});
+  const [items, setItems] = useState<PrivacyInfo[]>([]);
   const [editingId, setEditingId] = useState<number | null>(null);
 
   const resetForm = () => {
@@ -32,32 +29,28 @@ const Page = (props: Props) => {
   };
 
   const handleSave = () => {
-    if (!form.title || !form.subtitle || !form.url) {
-      alert("Please fill all fields");
+    if (!form.text || !form.url) {
+      alert("Please fill both fields");
       return;
     }
 
     if (editingId) {
-      // Edit existing
       setItems((prev) =>
         prev.map((item) =>
-          item.id === editingId ? { ...item, ...(form as Item) } : item
+          item.id === editingId ? { ...item, ...(form as PrivacyInfo) } : item
         )
       );
-      setEditingId(null);
     } else {
-      // Limit to 4 items
-      if (items.length >= 4) {
-        alert("You can only create up to 4 items");
-        return;
-      }
-      setItems((prev) => [...prev, { ...(form as Item), id: Date.now() }]);
+      setItems((prev) => [
+        ...prev,
+        { ...(form as PrivacyInfo), id: Date.now() },
+      ]);
     }
 
     resetForm();
   };
 
-  const handleEdit = (item: Item) => {
+  const handleEdit = (item: PrivacyInfo) => {
     setForm(item);
     setEditingId(item.id);
   };
@@ -72,31 +65,22 @@ const Page = (props: Props) => {
       <div className="w-full">
         <Card>
           <CardHeader>
-            <CardTitle>Promo Banner</CardTitle>
-            <CardDescription>
-              Fill in the fields below to create or edit a promo banner
-            </CardDescription>
+            <CardTitle>Privacy Info</CardTitle>
+            <CardDescription>Add links for privacy info</CardDescription>
           </CardHeader>
 
           <CardContent className="grid gap-4">
+            {/* Text */}
             <div className="grid gap-2">
-              <Label htmlFor="title">Title</Label>
+              <Label htmlFor="text">Text</Label>
               <Input
-                id="title"
-                value={form.title || ""}
-                onChange={(e) => setForm({ ...form, title: e.target.value })}
+                id="text"
+                value={form.text || ""}
+                onChange={(e) => setForm({ ...form, text: e.target.value })}
               />
             </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="subtitle">Subtitle</Label>
-              <Input
-                id="subtitle"
-                value={form.subtitle || ""}
-                onChange={(e) => setForm({ ...form, subtitle: e.target.value })}
-              />
-            </div>
-
+            {/* URL */}
             <div className="grid gap-2">
               <Label htmlFor="url">URL</Label>
               <Input
@@ -106,6 +90,7 @@ const Page = (props: Props) => {
               />
             </div>
 
+            {/* Buttons */}
             <div className="flex gap-2">
               <Button onClick={handleSave}>
                 {editingId ? "Update" : "Save"}
@@ -117,14 +102,11 @@ const Page = (props: Props) => {
           </CardContent>
         </Card>
 
-        {/* Created items */}
+        {/* View Created Items */}
         {items.length > 0 && (
-          <Card className="mt-4">
+          <Card>
             <CardHeader>
-              <CardTitle>Created Items</CardTitle>
-              <CardDescription>
-                View, edit or delete created items
-              </CardDescription>
+              <CardTitle>Created Privacy Links</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
               {items.map((item) => (
@@ -133,8 +115,7 @@ const Page = (props: Props) => {
                   className="flex items-center justify-between border rounded px-3 py-2"
                 >
                   <div>
-                    <p className="font-semibold">{item.title}</p>
-                    <p className="text-sm">{item.subtitle}</p>
+                    <p className="font-semibold">{item.text}</p>
                     <p className="text-sm text-muted-foreground">{item.url}</p>
                   </div>
                   <div className="flex gap-2">
@@ -159,4 +140,4 @@ const Page = (props: Props) => {
   );
 };
 
-export default Page;
+export default PrivacyInfoSection;
