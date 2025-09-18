@@ -47,11 +47,11 @@ import {
 type Props = {};
 
 const items = [
-  {
-    title: "Dashboard",
-    url: "/",
-    icon: LayoutDashboard,
-  },
+  // {
+  //   title: "Dashboard",
+  //   url: "/",
+  //   icon: LayoutDashboard,
+  // },
   {
     title: "Header",
     url: "#",
@@ -59,29 +59,29 @@ const items = [
     children: [
       {
         title: "Logo",
-        url: "#",
+        url: "/header/logo",
         icon: Frame,
       },
       {
         title: "Navigation",
-        url: "#",
+        url: "/header/navigation",
         icon: LocateFixed,
       },
       {
-        title: "Promo Banner",
-        url: "#",
+        title: "Banner",
+        url: "/header/banner",
         icon: Waypoints,
       },
     ],
   },
   {
     title: "Hero",
-    url: "#",
+    url: "/hero",
     icon: Images,
   },
   {
     title: "Brands",
-    url: "#",
+    url: "/brands",
     icon: Target,
   },
   {
@@ -91,17 +91,17 @@ const items = [
     children: [
       {
         title: "Gender",
-        url: "#",
+        url: "/cards/gender",
         icon: Transgender,
       },
       {
         title: "Shop Now",
-        url: "#",
+        url: "/cards/shop-now",
         icon: ShoppingBag,
       },
       {
         title: "Looks",
-        url: "#",
+        url: "/cards/look",
         icon: Eclipse,
       },
     ],
