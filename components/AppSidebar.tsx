@@ -1,9 +1,12 @@
 "use client";
 import {
   AlignVerticalSpaceBetween,
+  ArrowLeftRight,
   BookImage,
   BrickWall,
+  ChartBarStacked,
   ChevronDown,
+  ContactRound,
   Eclipse,
   Eye,
   Footprints,
@@ -50,6 +53,13 @@ type Props = {};
 
 const items = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard, group: "main menu" },
+  { title: "Users", url: "/users", icon: ContactRound, group: "main menu" },
+  {
+    title: "Category",
+    url: "/category",
+    icon: ChartBarStacked,
+    group: "main menu",
+  },
   {
     title: "Products",
     url: "/products",
@@ -62,6 +72,12 @@ const items = [
     title: "Report & Analytics",
     url: "/report-analytics",
     icon: Target,
+    group: "main menu",
+  },
+  {
+    title: "All Transactions",
+    url: "/transactions",
+    icon: ArrowLeftRight,
     group: "main menu",
   },
 

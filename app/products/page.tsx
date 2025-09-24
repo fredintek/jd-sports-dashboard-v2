@@ -24,59 +24,33 @@ import {
   DialogDescription,
   DialogClose,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useAppDispatch, useAppSelector } from "@/redux/store";
+import {
+  addProduct,
+  deleteProduct,
+  editProduct,
+  Product,
+} from "@/redux/slices/productSlice";
 
-const initialProducts = [
-  {
-    id: 1,
-    name: "Nike Air Max",
-    category: "Shoes",
-    price: "$120",
-    stock: 34,
-    status: "In Stock",
-    image:
-      "https://www.jdsports.cy/2767528-product_horizontal/on-cloudtilt.jpg",
-  },
-  {
-    id: 2,
-    name: "Adidas Ultraboost",
-    category: "Shoes",
-    price: "$95",
-    stock: 0,
-    status: "Out of Stock",
-    image:
-      "https://www.jdsports.cy/2698124-product_horizontal/nike-air-force-1-07.jpg",
-  },
-  {
-    id: 3,
-    name: "Puma RS-X",
-    category: "Shoes",
-    price: "$110",
-    stock: 12,
-    status: "In Stock",
-    image:
-      "https://www.jdsports.cy/2768050-product_medium/adidas-originals-superstar-ii.jpg",
-  },
-];
-
-const productStats = [
-  {
-    label: "Total Products",
-    value: 245,
-    icon: Package,
-    color: "text-blue-500",
-  },
-  { label: "In Stock", value: 180, icon: CheckCircle, color: "text-green-500" },
-  { label: "Out of Stock", value: 65, icon: XCircle, color: "text-red-500" },
-  {
-    label: "Revenue",
-    value: "$23,450",
-    icon: DollarSign,
-    color: "text-orange-500",
-  },
-];
+const icons: Record<string, any> = {
+  package: Package,
+  "check-circle": CheckCircle,
+  "x-circle": XCircle,
+  "dollar-sign": DollarSign,
+};
 
 const ProductsPage = () => {
-  const [products, setProducts] = useState(initialProducts);
+  const dispatch = useAppDispatch();
+  const { products, productStats } = useAppSelector((state) => state.product);
+  const { categories } = useAppSelector((state) => state.category);
+
   const [open, setOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
   const [form, setForm] = useState({
@@ -91,34 +65,33 @@ const ProductsPage = () => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleAddEdit = () => {
-    if (editingProduct) {
-      // Update product
-      setProducts((prev) =>
-        prev.map((p) =>
-          p.id === editingProduct.id
-            ? {
-                ...p,
-                ...form,
-                stock: Number(form.stock),
-                status: Number(form.stock) > 0 ? "In Stock" : "Out of Stock",
-              }
-            : p
-        )
-      );
-    } else {
-      // Add new product
-      const newProduct = {
-        id: products.length + 1,
-        ...form,
-        stock: Number(form.stock),
-        status: Number(form.stock) > 0 ? "In Stock" : "Out of Stock",
-      };
-      setProducts([...products, newProduct]);
-    }
-    setOpen(false);
+  const handleResetForm = () => {
     setEditingProduct(null);
     setForm({ name: "", category: "", price: "", stock: "", image: "" });
+  };
+
+  const handleAddEdit = () => {
+    if (editingProduct) {
+      dispatch(
+        editProduct({
+          id: editingProduct.id,
+          ...form,
+          stock: Number(form.stock),
+        } as Product)
+      );
+    } else {
+      dispatch(
+        addProduct({
+          category: form.category,
+          image: form.image,
+          name: form.name,
+          price: form.price,
+          stock: Number(form.stock),
+        })
+      );
+    }
+    setOpen(false);
+    handleResetForm();
   };
 
   const handleEdit = (product: any) => {
@@ -134,7 +107,7 @@ const ProductsPage = () => {
   };
 
   const handleDelete = (id: number) => {
-    setProducts(products.filter((p) => p.id !== id));
+    dispatch(deleteProduct(id));
   };
 
   return (
@@ -142,29 +115,37 @@ const ProductsPage = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Products</h1>
-        <Button onClick={() => setOpen(true)}>
+        <Button
+          onClick={() => {
+            setOpen(true);
+            handleResetForm();
+          }}
+        >
           <Plus className="w-4 h-4 mr-2" /> Add Product
         </Button>
       </div>
       {/* Stats */}{" "}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
         {" "}
-        {productStats.map((stat) => (
-          <Card key={stat.label}>
-            {" "}
-            <CardHeader>
+        {productStats.map((stat) => {
+          const Icon = icons[stat.icon];
+          return (
+            <Card key={stat.label}>
               {" "}
-              <CardTitle className="flex items-center gap-2 text-sm font-medium">
+              <CardHeader>
                 {" "}
-                <stat.icon className={`w-4 h-4 ${stat.color}`} /> {stat.label}{" "}
-              </CardTitle>{" "}
-            </CardHeader>{" "}
-            <CardContent>
-              {" "}
-              <p className="text-2xl font-bold">{stat.value}</p>{" "}
-            </CardContent>{" "}
-          </Card>
-        ))}{" "}
+                <CardTitle className="flex items-center gap-2 text-sm font-medium">
+                  {" "}
+                  <Icon className={`w-4 h-4 ${stat.color}`} /> {stat.label}{" "}
+                </CardTitle>{" "}
+              </CardHeader>{" "}
+              <CardContent>
+                {" "}
+                <p className="text-2xl font-bold">{stat.value}</p>{" "}
+              </CardContent>{" "}
+            </Card>
+          );
+        })}{" "}
       </div>
       {/* Products Table */}
       <Card>
@@ -276,12 +257,21 @@ const ProductsPage = () => {
             </div>
             <div className="flex flex-col gap-2">
               <Label>Category</Label>
-              <Input
-                name="category"
+              <Select
                 value={form.category}
-                onChange={handleChange}
-                placeholder="Category"
-              />
+                onValueChange={(value) => setForm({ ...form, category: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.name}>
+                      {cat.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="flex flex-col gap-2">
               <Label>Price</Label>
