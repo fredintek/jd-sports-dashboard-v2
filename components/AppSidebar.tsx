@@ -101,7 +101,7 @@ const items = [
     children: [
       { title: "Gender", url: "/cards/gender", icon: Transgender },
       { title: "Shop Now", url: "/cards/shop-now", icon: ShoppingBag },
-      { title: "Looks", url: "/cards/look", icon: Eclipse },
+      // { title: "Looks", url: "/cards/look", icon: Eclipse },
     ],
     group: "content systems",
   },
@@ -173,7 +173,7 @@ const AppSidebar = (props: Props) => {
         </SidebarMenu>
       </SidebarHeader>
 
-      <SidebarContent className="px-2 mt-6">
+      <SidebarContent className="mt-6">
         {Object.entries(groupedItems).map(([group, groupItems]) => (
           <SidebarGroup key={group}>
             <SidebarGroupLabel className="capitalize">

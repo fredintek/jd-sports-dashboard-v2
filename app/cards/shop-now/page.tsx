@@ -17,6 +17,7 @@ type ShopNowItem = {
   label: string;
   url: string;
   image?: File;
+  imageUrl?: string;
 };
 
 const ShopNow = () => {
@@ -67,6 +68,17 @@ const ShopNow = () => {
     if (editingId === id) resetForm();
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setForm({
+        ...form,
+        image: file,
+        imageUrl: URL.createObjectURL(file),
+      });
+    }
+  };
+
   return (
     <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <Card>
@@ -103,8 +115,15 @@ const ShopNow = () => {
               id="image"
               type="file"
               accept="image/*"
-              onChange={(e) => setForm({ ...form, image: e.target.files?.[0] })}
+              onChange={handleImageChange}
             />
+            {form.imageUrl && (
+              <img
+                src={form.imageUrl}
+                alt="preview"
+                className="h-32 w-32 object-cover rounded"
+              />
+            )}
           </div>
 
           <div className="flex gap-2">

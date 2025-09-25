@@ -17,18 +17,19 @@ type Showcase = {
   id: number;
   image?: File | null;
   imageUrl?: string;
-  shopNow: boolean;
+  btn: boolean;
+  btnTitle: string;
   link?: string;
 };
 
 const LooksSection = () => {
-  const [form, setForm] = useState<Partial<Showcase>>({ shopNow: false });
+  const [form, setForm] = useState<Partial<Showcase>>({ btn: false });
   const [showcases, setShowcases] = useState<Showcase[]>([]);
   const [editingId, setEditingId] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const resetForm = () => {
-    setForm({ shopNow: false });
+    setForm({ btn: false });
     setEditingId(null);
 
     if (fileInputRef.current) {
@@ -53,7 +54,7 @@ const LooksSection = () => {
       return;
     }
 
-    if (form.shopNow && !form.link) {
+    if (form.btn && !form.link) {
       alert("Please provide a link for Shop Now");
       return;
     }
@@ -117,24 +118,37 @@ const LooksSection = () => {
 
             {/* Shop Now Toggle */}
             <div className="flex items-center gap-2">
-              <Label>Shop Now</Label>
+              <Label>Button</Label>
               <Switch
-                checked={form.shopNow || false}
+                checked={form.btn || false}
                 onCheckedChange={(checked) =>
-                  setForm({ ...form, shopNow: checked })
+                  setForm({ ...form, btn: checked })
                 }
               />
             </div>
 
             {/* Shop Now Link */}
-            {form.shopNow && (
-              <div className="grid gap-2">
-                <Label htmlFor="link">Shop Now Link</Label>
-                <Input
-                  id="link"
-                  value={form.link || ""}
-                  onChange={(e) => setForm({ ...form, link: e.target.value })}
-                />
+            {form.btn && (
+              <div className="grid grid-cols-2 gap-2">
+                <div className="grid gap-2">
+                  <Label htmlFor="btnTitle">Button Title</Label>
+                  <Input
+                    id="btnTitle"
+                    value={form.btnTitle || ""}
+                    onChange={(e) =>
+                      setForm({ ...form, btnTitle: e.target.value })
+                    }
+                  />
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="link">Shop Now Link</Label>
+                  <Input
+                    id="link"
+                    value={form.link || ""}
+                    onChange={(e) => setForm({ ...form, link: e.target.value })}
+                  />
+                </div>
               </div>
             )}
 
@@ -173,9 +187,9 @@ const LooksSection = () => {
                     )}
                     <div>
                       <p className="font-semibold">
-                        Shop Now: {item.shopNow ? "Yes" : "No"}
+                        Shop Now: {item.btn ? "Yes" : "No"}
                       </p>
-                      {item.shopNow && (
+                      {item.btn && (
                         <p className="text-sm text-muted-foreground">
                           Link: {item.link}
                         </p>

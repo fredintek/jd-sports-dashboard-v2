@@ -19,18 +19,20 @@ type Props = {};
 type HeroSlide = {
   id: number;
   image?: File;
-  shopNow?: boolean;
+  imageUrl?: string;
+  btn?: boolean;
   link?: string;
+  btnTitle?: string;
 };
 
 const HeroSection = (props: Props) => {
-  const [form, setForm] = useState<Partial<HeroSlide>>({ shopNow: false });
+  const [form, setForm] = useState<Partial<HeroSlide>>({ btn: false });
   const [slides, setSlides] = useState<HeroSlide[]>([]);
   const [editingId, setEditingId] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const resetForm = () => {
-    setForm({ shopNow: false });
+    setForm({ btn: false });
     setEditingId(null);
 
     if (fileInputRef.current) {
@@ -44,7 +46,7 @@ const HeroSection = (props: Props) => {
       return;
     }
 
-    if (form.shopNow && !form.link) {
+    if (form.btn && !form.link) {
       alert("Please fill the Shop Now link");
       return;
     }
@@ -97,30 +99,53 @@ const HeroSection = (props: Props) => {
                 accept="image/*"
                 onChange={(e) => {
                   if (e.target.files && e.target.files[0]) {
-                    setForm({ ...form, image: e.target.files[0] });
+                    setForm({
+                      ...form,
+                      image: e.target.files[0],
+                      imageUrl: URL.createObjectURL(e.target.files[0]),
+                    });
                   }
                 }}
               />
+              {form.imageUrl && (
+                <img
+                  src={form.imageUrl}
+                  alt="preview"
+                  className="h-32 w-32 object-cover rounded"
+                />
+              )}
             </div>
 
             <div className="flex items-center gap-2">
-              <Label>Shop Now Button</Label>
+              <Label>Button</Label>
               <Switch
-                checked={form.shopNow || false}
+                checked={form.btn || false}
                 onCheckedChange={(checked) =>
-                  setForm({ ...form, shopNow: checked })
+                  setForm({ ...form, btn: checked })
                 }
               />
             </div>
 
-            {form.shopNow && (
-              <div className="grid gap-2">
-                <Label htmlFor="link">Shop Now Link</Label>
-                <Input
-                  id="link"
-                  value={form.link || ""}
-                  onChange={(e) => setForm({ ...form, link: e.target.value })}
-                />
+            {form.btn && (
+              <div className="grid gap-2 grid-cols-2">
+                <div className="grid gap-2">
+                  <Label htmlFor="btnTitle">Button Title</Label>
+                  <Input
+                    id="btnTitle"
+                    value={form.btnTitle || ""}
+                    onChange={(e) =>
+                      setForm({ ...form, btnTitle: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="link">Url</Label>
+                  <Input
+                    id="link"
+                    value={form.link || ""}
+                    onChange={(e) => setForm({ ...form, link: e.target.value })}
+                  />
+                </div>
               </div>
             )}
 
@@ -150,7 +175,7 @@ const HeroSection = (props: Props) => {
                 >
                   <div className="flex flex-col gap-1">
                     <span className="font-semibold">{slide.image?.name}</span>
-                    {slide.shopNow && (
+                    {slide.btn && (
                       <span className="text-sm text-muted-foreground">
                         Shop Now: {slide.link}
                       </span>

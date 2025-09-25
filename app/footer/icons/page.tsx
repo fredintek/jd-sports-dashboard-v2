@@ -37,13 +37,11 @@ const IconsPage = (props: Props) => {
   const [icons, setIcons] = useState<IconItem[]>([]);
   const [categories, setCategories] = useState<string[]>(initialCategories);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [newCategory, setNewCategory] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const resetForm = () => {
     setForm({});
     setEditingId(null);
-    setNewCategory("");
 
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
@@ -76,11 +74,6 @@ const IconsPage = (props: Props) => {
       setEditingId(null);
     } else {
       setIcons((prev) => [...prev, { ...(form as IconItem), id: Date.now() }]);
-    }
-
-    // If new category was added, include it in categories
-    if (newCategory && !categories.includes(newCategory)) {
-      setCategories((prev) => [...prev, newCategory]);
     }
 
     resetForm();
@@ -154,27 +147,6 @@ const IconsPage = (props: Props) => {
                   ))}
                 </SelectContent>
               </Select>
-
-              {/* Add new category */}
-              <div className="flex gap-2 mt-2">
-                <Input
-                  placeholder="New category"
-                  value={newCategory}
-                  onChange={(e) => setNewCategory(e.target.value)}
-                />
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    if (newCategory && !categories.includes(newCategory)) {
-                      setCategories([...categories, newCategory]);
-                      setForm({ ...form, category: newCategory });
-                      setNewCategory("");
-                    }
-                  }}
-                >
-                  Add
-                </Button>
-              </div>
             </div>
 
             {/* Action buttons */}

@@ -104,9 +104,9 @@ export default function page() {
                       <Badge
                         variant={
                           t.status === "Completed"
-                            ? "default"
+                            ? "success"
                             : t.status === "Pending"
-                            ? "secondary"
+                            ? "pending"
                             : "destructive"
                         }
                       >

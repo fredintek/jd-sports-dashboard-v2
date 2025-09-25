@@ -20,10 +20,9 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Plus, Package } from "lucide-react";
-import { AppDispatch, useAppDispatch, useAppSelector } from "@/redux/store";
+import { useAppDispatch, useAppSelector } from "@/redux/store";
 import {
   addCategory,
-  deleteCategory,
   deleteCategoryAndUnassign,
   updateCategory,
 } from "@/redux/slices/categorySlice";
@@ -38,28 +37,56 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 type Category = {
   id: number;
   name: string;
   description: string;
+  feature: "products" | "footerIcons" | "footerLinks";
 };
+
+const features = [
+  { key: "products", label: "Products", icon: Package },
+  { key: "footerIcons", label: "Footer Icons", icon: Plus },
+  { key: "footerLinks", label: "Footer Links", icon: Plus },
+];
 
 export default function page() {
   const dispatch = useAppDispatch();
   const categories = useAppSelector((state) => state.category.categories);
+  const products = useAppSelector((state) => state.product.products);
+  console.log("products", products);
 
   const [open, setOpen] = useState(false);
+  const [activeFeature, setActiveFeature] =
+    useState<Category["feature"]>("products");
+
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [formData, setFormData] = useState({ name: "", description: "" });
+  const [formData, setFormData] = useState<Omit<Category, "id">>({
+    name: "",
+    description: "",
+    feature: activeFeature,
+  });
 
   const handleOpen = (category?: Category) => {
     if (category) {
-      setEditingCategory(category);
-      setFormData({ name: category.name, description: category.description });
+      setEditingCategory(category as Category);
+      setFormData({
+        name: category.name,
+        description: category.description,
+        feature: category.feature,
+      });
     } else {
       setEditingCategory(null);
-      setFormData({ name: "", description: "" });
+      setFormData({ name: "", description: "", feature: "products" });
     }
     setOpen(true);
   };
@@ -68,7 +95,7 @@ export default function page() {
     if (editingCategory) {
       dispatch(updateCategory({ ...editingCategory, ...formData }));
     } else {
-      dispatch(addCategory(formData));
+      dispatch(addCategory({ ...formData }));
     }
     setOpen(false);
   };
@@ -89,19 +116,27 @@ export default function page() {
 
       {/* Feature Cards (Products only for now) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="cursor-pointer hover:shadow-lg transition">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Package className="w-5 h-5 text-blue-500" />
-              Products
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-gray-600">
-              Manage all product categories and items here.
-            </p>
-          </CardContent>
-        </Card>
+        {features.map((f) => (
+          <Card
+            key={f.key}
+            onClick={() => setActiveFeature(f.key as Category["feature"])}
+            className={`cursor-pointer hover:shadow-lg transition ${
+              activeFeature === f.key ? "ring-2 ring-blue-500" : ""
+            }`}
+          >
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <f.icon className="w-5 h-5 text-blue-500" />
+                {f.label}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-gray-600">
+                Manage all {f.label.toLowerCase()} categories here.
+              </p>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       {/* Categories Table */}
@@ -120,50 +155,52 @@ export default function page() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {categories.map((category) => (
-                <TableRow key={category.id}>
-                  <TableCell>{category.id}</TableCell>
-                  <TableCell>{category.name}</TableCell>
-                  <TableCell>{category.description}</TableCell>
-                  <TableCell className="text-right space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleOpen(category)}
-                    >
-                      Edit
-                    </Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="destructive" size="sm">
-                          Delete
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>
-                            Are you absolutely sure?
-                          </AlertDialogTitle>
-                          <AlertDialogDescription>
-                            This action cannot be undone. This will permanently
-                            delete the nav link
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() =>
-                              handleDelete(category.id, category.name)
-                            }
-                          >
-                            Confirm
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {categories
+                .filter((c) => c.feature === activeFeature)
+                .map((category) => (
+                  <TableRow key={category.id}>
+                    <TableCell>{category.id}</TableCell>
+                    <TableCell>{category.name}</TableCell>
+                    <TableCell>{category.description}</TableCell>
+                    <TableCell className="text-right space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleOpen(category)}
+                      >
+                        Edit
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="destructive" size="sm">
+                            Delete
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>
+                              Are you absolutely sure?
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone. This will
+                              permanently delete the nav link
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() =>
+                                handleDelete(category.id, category.name)
+                              }
+                            >
+                              Confirm
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </TableCell>
+                  </TableRow>
+                ))}
             </TableBody>
           </Table>
         </CardContent>
@@ -178,23 +215,54 @@ export default function page() {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            <Input
-              placeholder="Category Name"
-              value={formData.name}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, name: e.target.value }))
-              }
-            />
-            <Input
-              placeholder="Description"
-              value={formData.description}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  description: e.target.value,
-                }))
-              }
-            />
+            <div className="grid gap-2">
+              <Label className="text-sm font-medium">Category Name</Label>
+              <Input
+                placeholder="Category Name"
+                value={formData.name}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, name: e.target.value }))
+                }
+              />
+            </div>
+            <div className="grid gap-1">
+              <Label className="text-sm font-medium">Descripton</Label>
+              <Input
+                placeholder="Description"
+                value={formData.description}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    description: e.target.value,
+                  }))
+                }
+              />
+            </div>
+            {!editingCategory && (
+              <div className="grid gap-1">
+                <Label className="text-sm font-medium">Feature</Label>
+                <Select
+                  value={formData.feature}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      feature: value as Category["feature"],
+                    }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select feature" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {features.map((f) => (
+                      <SelectItem key={f.key} value={f.key}>
+                        {f.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>
