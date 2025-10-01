@@ -1,6 +1,12 @@
 "use client";
-import { LogOut, Moon, Settings, Sun, User } from "lucide-react";
-import Link from "next/link";
+import {
+  ArrowLeftRight,
+  LogOut,
+  Moon,
+  Settings,
+  Sun,
+  User,
+} from "lucide-react";
 import React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import {
@@ -14,11 +20,15 @@ import {
 import { Button } from "./ui/button";
 import { useTheme } from "next-themes";
 import { SidebarTrigger } from "./ui/sidebar";
+import { useAppDispatch, useAppSelector } from "@/redux/store";
+import { switchUser } from "@/redux/slices/userSlice";
 
 type Props = {};
 
 const Navbar = (props: Props) => {
   const { theme, setTheme } = useTheme();
+  const users = useAppSelector((state) => state.user);
+  const dispatch = useAppDispatch();
 
   return (
     <nav className="p-4 flex items-center justify-between">
@@ -52,13 +62,20 @@ const Navbar = (props: Props) => {
         <DropdownMenu>
           <DropdownMenuTrigger className="cursor-pointer">
             <Avatar>
-              <AvatarImage src="https://plus.unsplash.com/premium_photo-1690407617542-2f210cf20d7e?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8cGVyc29ufGVufDB8fDB8fHww" />
+              <AvatarImage src={users.activeUser?.image} />
               <AvatarFallback>JD</AvatarFallback>
             </Avatar>
           </DropdownMenuTrigger>
           <DropdownMenuContent sideOffset={10}>
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
             <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => dispatch(switchUser())}
+              className="cursor-pointer"
+            >
+              <ArrowLeftRight className="h-[1.2rem] w-[1.2rem] mr-2" />
+              Switch
+            </DropdownMenuItem>
             <DropdownMenuItem className="cursor-pointer">
               <User className="h-[1.2rem] w-[1.2rem] mr-2" />
               Profile

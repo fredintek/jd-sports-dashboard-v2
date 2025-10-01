@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -12,7 +12,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Package, DollarSign, CheckCircle, XCircle } from "lucide-react";
+import {
+  Plus,
+  Package,
+  DollarSign,
+  CheckCircle,
+  XCircle,
+  Download,
+  Undo2,
+  CalendarIcon,
+} from "lucide-react";
 import Image from "next/image";
 import {
   Dialog,
@@ -50,6 +59,8 @@ const ProductsPage = () => {
   const dispatch = useAppDispatch();
   const { products, productStats } = useAppSelector((state) => state.product);
   const { categories } = useAppSelector((state) => state.category);
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [searchProduct, setSearchProduct] = useState("");
 
   const [open, setOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
@@ -60,6 +71,18 @@ const ProductsPage = () => {
     stock: "",
     image: "",
   });
+
+  const filteredData = useMemo(() => {
+    return products.filter((row) => {
+      const matchesStatus =
+        statusFilter === "All" ? true : row.status === statusFilter;
+      const matchesProduct = row.name
+        .toLowerCase()
+        .includes(searchProduct.toLowerCase());
+
+      return matchesStatus && matchesProduct;
+    });
+  }, [statusFilter, searchProduct]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -110,6 +133,43 @@ const ProductsPage = () => {
     dispatch(deleteProduct(id));
   };
 
+  const exportToCSV = () => {
+    const headers = [
+      "ID",
+      "Image",
+      "Name",
+      "Category",
+      "Price",
+      "Stock",
+      "Status",
+    ];
+    const rows = filteredData.map((row) => [
+      row.id,
+      row.image,
+      row.name,
+      row.category,
+      row.price,
+      row.stock,
+      row.status,
+    ]);
+
+    const csvContent =
+      "data:text/csv;charset=utf-8," +
+      [headers, ...rows].map((e) => e.join(",")).join("\n");
+
+    const link = document.createElement("a");
+    link.setAttribute("href", encodeURI(csvContent));
+    link.setAttribute("download", "products_data.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const resetFilter = () => {
+    setSearchProduct("");
+    setStatusFilter("All");
+  };
+
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -151,6 +211,47 @@ const ProductsPage = () => {
       <Card>
         <CardHeader>
           <CardTitle>All Products</CardTitle>
+          {/* Filters */}
+          <div className="flex flex-wrap gap-2 md:gap-4 md:items-center w-full mt-2">
+            {/* Search */}
+            <Input
+              placeholder="Search customer..."
+              value={searchProduct}
+              onChange={(e) => setSearchProduct(e.target.value)}
+              className="max-w-[200px] w-full"
+            />
+            {/* Status */}
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="max-w-[200px] w-full">
+                <SelectValue placeholder="Filter by Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All">All</SelectItem>
+                <SelectItem value="In Stock">In Stock</SelectItem>
+                <SelectItem value="Out of Stock">Out Of Stock</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Export */}
+            <Button
+              onClick={exportToCSV}
+              variant="outline"
+              className="max-w-[100px] w-full"
+            >
+              <Download className="mr-1 h-4 w-4" />
+              Export
+            </Button>
+
+            {/* Reset */}
+            <Button
+              onClick={resetFilter}
+              variant="outline"
+              className="max-w-[100px] w-full"
+            >
+              <Undo2 className="mr-1 h-4 w-4" />
+              Reset
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
@@ -167,7 +268,7 @@ const ProductsPage = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {products.map((product) => (
+              {filteredData.map((product) => (
                 <TableRow key={product.id}>
                   <TableCell>{product.id}</TableCell>
                   <TableCell>

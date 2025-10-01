@@ -54,9 +54,9 @@ type Category = {
 };
 
 const features = [
-  { key: "products", label: "Products", icon: Package },
-  // { key: "footerIcons", label: "Footer Icons", icon: Plus },
-  // { key: "footerLinks", label: "Footer Links", icon: Plus },
+  //   { key: "products", label: "Products", icon: Package },
+  { key: "footerIcons", label: "Footer Icons", icon: Plus },
+  { key: "footerLinks", label: "Footer Links", icon: Plus },
 ];
 
 export default function page() {
@@ -65,7 +65,7 @@ export default function page() {
 
   const [open, setOpen] = useState(false);
   const [activeFeature, setActiveFeature] =
-    useState<Category["feature"]>("products");
+    useState<Category["feature"]>("footerIcons");
 
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [formData, setFormData] = useState<Omit<Category, "id">>({
@@ -149,17 +149,19 @@ export default function page() {
                 <TableHead>ID</TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Description</TableHead>
+                <TableHead>Feature</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {categories
-                .filter((c) => c.feature === activeFeature)
+                .filter((c) => c.feature !== "products")
                 .map((category) => (
                   <TableRow key={category.id}>
                     <TableCell>{category.id}</TableCell>
                     <TableCell>{category.name}</TableCell>
                     <TableCell>{category.description}</TableCell>
+                    <TableCell>{category.feature}</TableCell>
                     <TableCell className="text-right space-x-2">
                       <Button
                         variant="outline"
@@ -236,7 +238,7 @@ export default function page() {
                 }
               />
             </div>
-            {/* {!editingCategory && (
+            {!editingCategory && (
               <div className="grid gap-1">
                 <Label className="text-sm font-medium">Feature</Label>
                 <Select
@@ -260,7 +262,7 @@ export default function page() {
                   </SelectContent>
                 </Select>
               </div>
-            )} */}
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>

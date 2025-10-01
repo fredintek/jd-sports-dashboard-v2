@@ -38,45 +38,22 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Plus, Edit, Trash2, Key } from "lucide-react";
-
-type User = {
-  id: string;
-  name: string;
-  email: string;
-  role: "Admin" | "Editor" | "User";
-  status: "Active" | "Inactive";
-};
-
-const initialUsers: User[] = [
-  {
-    id: "1",
-    name: "Alice Johnson",
-    email: "alice@example.com",
-    role: "Admin",
-    status: "Active",
-  },
-  {
-    id: "2",
-    name: "Bob Smith",
-    email: "bob@example.com",
-    role: "Editor",
-    status: "Active",
-  },
-  {
-    id: "3",
-    name: "Charlie Brown",
-    email: "charlie@example.com",
-    role: "User",
-    status: "Inactive",
-  },
-];
+import { useAppDispatch, useAppSelector } from "@/redux/store";
+import {
+  addUser,
+  deleteUser,
+  updateUser,
+  User,
+} from "@/redux/slices/userSlice";
 
 export default function UsersPage() {
-  const [users, setUsers] = useState<User[]>(initialUsers);
+  const stateUser = useAppSelector((state) => state.user);
+  const dispatch = useAppDispatch();
+  const [users, setUsers] = useState<User[]>(stateUser.users);
   const [search, setSearch] = useState("");
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isNewUserDialogOpen, setIsNewUserDialogOpen] = useState(false);
-  const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
+  const [deleteUserId, setDeleteUserId] = useState<number | null>(null);
 
   const filteredUsers = users.filter(
     (u) =>
@@ -85,19 +62,19 @@ export default function UsersPage() {
   );
 
   const handleAddUser = (user: Omit<User, "id">) => {
-    setUsers([...users, { ...user, id: Date.now().toString() }]);
+    dispatch(addUser({ ...user }));
     toast.success("User created successfully");
     setIsNewUserDialogOpen(false);
   };
 
   const handleEditUser = (updated: User) => {
-    setUsers(users.map((u) => (u.id === updated.id ? updated : u)));
+    dispatch(updateUser(updated));
     toast.success("User updated successfully");
     setSelectedUser(null);
   };
 
-  const handleDeleteUser = (id: string) => {
-    setUsers(users.filter((u) => u.id !== id));
+  const handleDeleteUser = (id: number) => {
+    dispatch(deleteUser(id));
     toast.success("User deleted");
     setDeleteUserId(null);
   };
@@ -110,19 +87,23 @@ export default function UsersPage() {
     <div className="p-6 space-y-6">
       {/* Header */}
       <Card>
-        <CardHeader className="flex justify-between items-center">
-          <CardTitle>Users</CardTitle>
-          <div className="flex gap-2">
-            <Input
-              placeholder="Search users..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-64"
-            />
-            <Button onClick={() => setIsNewUserDialogOpen(true)}>
-              <Plus className="w-4 h-4 mr-2" /> Add User
-            </Button>
+        <CardHeader className="flex flex-col">
+          <div className="flex items-center justify-between w-full">
+            <CardTitle>Users</CardTitle>
+            <div className="flex gap-2">
+              <Input
+                placeholder="Search users..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-64"
+              />
+              <Button onClick={() => setIsNewUserDialogOpen(true)}>
+                <Plus className="w-4 h-4 mr-2" /> Add User
+              </Button>
+            </div>
           </div>
+
+          {/* FILTERS GOES HERE */}
         </CardHeader>
         <CardContent>
           <Table>
@@ -132,7 +113,9 @@ export default function UsersPage() {
                 <TableHead>Email</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                {stateUser?.activeUser?.role !== "user" && (
+                  <TableHead className="text-right">Actions</TableHead>
+                )}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -146,35 +129,41 @@ export default function UsersPage() {
                   <TableCell>
                     <Badge
                       variant={
-                        u.status === "Active" ? "default" : "destructive"
+                        u.status === "active" ? "default" : "destructive"
                       }
                     >
                       {u.status}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-right space-x-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setSelectedUser(u)}
-                    >
-                      <Edit className="w-4 h-4" /> Edit
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      onClick={() => handleResetPassword(u)}
-                    >
-                      <Key className="w-4 h-4" /> Reset Password
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => setDeleteUserId(u.id)}
-                    >
-                      <Trash2 className="w-4 h-4" /> Delete
-                    </Button>
-                  </TableCell>
+                  {stateUser?.activeUser?.role !== "user" && (
+                    <TableCell className="text-right space-x-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setSelectedUser(u)}
+                      >
+                        <Edit className="w-4 h-4" /> Edit
+                      </Button>
+                      {stateUser?.activeUser?.role !== "editor" && (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => handleResetPassword(u)}
+                          >
+                            <Key className="w-4 h-4" /> Reset Password
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => setDeleteUserId(u.id)}
+                          >
+                            <Trash2 className="w-4 h-4" /> Delete
+                          </Button>
+                        </>
+                      )}
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
             </TableBody>
@@ -217,9 +206,9 @@ export default function UsersPage() {
                   <SelectValue placeholder="Select Role" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Admin">Admin</SelectItem>
-                  <SelectItem value="Editor">Editor</SelectItem>
-                  <SelectItem value="User">User</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="editor">Editor</SelectItem>
+                  <SelectItem value="user">User</SelectItem>
                 </SelectContent>
               </Select>
               <Button
@@ -268,7 +257,9 @@ export default function UsersPage() {
                   role: (
                     document.getElementById("new-role") as HTMLSelectElement
                   ).value as User["role"],
-                  status: "Active",
+                  status: "active",
+                  image: "",
+                  phone: "+90 633 773 8383",
                 })
               }
             >
