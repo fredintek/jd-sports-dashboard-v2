@@ -19,7 +19,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Plus, Package } from "lucide-react";
+import { Plus, Package, Trash2, Edit } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import {
   addCategory,
@@ -166,12 +166,12 @@ export default function page() {
                         size="sm"
                         onClick={() => handleOpen(category)}
                       >
-                        Edit
+                        <Edit className="w-4 h-4" />
                       </Button>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button variant="destructive" size="sm">
-                            Delete
+                            <Trash2 className="w-4 h-4" />
                           </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>

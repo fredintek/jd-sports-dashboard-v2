@@ -21,6 +21,8 @@ import {
   Download,
   Undo2,
   CalendarIcon,
+  Trash2,
+  Edit,
 } from "lucide-react";
 import Image from "next/image";
 import {
@@ -301,12 +303,12 @@ const ProductsPage = () => {
                       size="sm"
                       onClick={() => handleEdit(product)}
                     >
-                      Edit
+                      <Edit className="w-4 h-4" />
                     </Button>
                     <Dialog>
                       <DialogTrigger asChild>
                         <Button variant="destructive" size="sm">
-                          Delete
+                          <Trash2 className="w-4 h-4" />
                         </Button>
                       </DialogTrigger>
                       <DialogContent className="sm:max-w-[425px]">

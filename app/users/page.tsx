@@ -142,23 +142,23 @@ export default function UsersPage() {
                         variant="outline"
                         onClick={() => setSelectedUser(u)}
                       >
-                        <Edit className="w-4 h-4" /> Edit
+                        <Edit className="w-4 h-4" />
                       </Button>
                       {stateUser?.activeUser?.role !== "editor" && (
                         <>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => setDeleteUserId(u.id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
                           <Button
                             size="sm"
                             variant="secondary"
                             onClick={() => handleResetPassword(u)}
                           >
                             <Key className="w-4 h-4" /> Reset Password
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => setDeleteUserId(u.id)}
-                          >
-                            <Trash2 className="w-4 h-4" /> Delete
                           </Button>
                         </>
                       )}

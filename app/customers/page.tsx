@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/table";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Search, Edit, Key, Trash2, FileText } from "lucide-react";
+import { Search, Edit, Key, Trash2, FileText, EyeIcon } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -160,20 +160,27 @@ export default function CustomersPage() {
                     <Button
                       variant="outline"
                       size="sm"
+                      onClick={() => router.push(`/customers/${c.id}`)}
+                    >
+                      <EyeIcon className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() =>
                         router.push(
                           `/transactions/single-transaction?customerId=${c.id}`
                         )
                       }
                     >
-                      <FileText className="w-4 h-4" /> Transactions
+                      <FileText className="w-4 h-4" />
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => setEditCustomer(c)}
                     >
-                      <Edit className="w-4 h-4" /> Edit
+                      <Edit className="w-4 h-4" />
                     </Button>
                     <Button
                       variant="secondary"
@@ -187,7 +194,7 @@ export default function CustomersPage() {
                       size="sm"
                       onClick={() => setDeleteCustomer(c)}
                     >
-                      <Trash2 className="w-4 h-4" /> Delete
+                      <Trash2 className="w-4 h-4" />
                     </Button>
                   </TableCell>
                 </TableRow>

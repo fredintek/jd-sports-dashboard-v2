@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -26,6 +26,11 @@ import {
   XCircle,
   Truck,
   DollarSign,
+  Undo2,
+  Download,
+  CalendarIcon,
+  Edit,
+  Trash2,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -38,6 +43,20 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { format } from "date-fns";
 
 // 📌 Initial mock orders
 const initialOrders = [
@@ -78,6 +97,13 @@ const getOrderStats = (orders: any[]) => {
 };
 
 const page = () => {
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [searchCustomer, setSearchCustomer] = useState("");
+  const [searchProduct, setSearchProduct] = useState("");
+  const [dateRange, setDateRange] = useState<any>({
+    from: new Date(),
+  });
+
   const [orders, setOrders] = useState(initialOrders);
   const [open, setOpen] = useState(false);
   const [editingOrder, setEditingOrder] = useState<any | null>(null);
@@ -88,6 +114,26 @@ const page = () => {
     status: "Pending",
     date: "",
   });
+
+  const filteredData = useMemo(() => {
+    return orders.filter((row) => {
+      const matchesStatus =
+        statusFilter === "All" ? true : row.status === statusFilter;
+      const matchesCustomer = row.customer
+        .toLowerCase()
+        .includes(searchCustomer.toLowerCase());
+
+      const matchesProduct = row.product
+        .toLowerCase()
+        .includes(searchProduct.toLowerCase());
+      const matchesDate =
+        !dateRange.from || !dateRange.to
+          ? true
+          : new Date(row.date) >= dateRange.from &&
+            new Date(row.date) <= dateRange.to;
+      return matchesStatus && matchesCustomer && matchesProduct && matchesDate;
+    });
+  }, [orders, statusFilter, searchCustomer, searchProduct, dateRange]);
 
   const stats = getOrderStats(orders);
 
@@ -137,6 +183,38 @@ const page = () => {
 
   const handleDelete = (id: number) => {
     setOrders(orders.filter((o) => o.id !== id));
+  };
+
+  const exportToCSV = () => {
+    const headers = ["ID", "Customer", "Product", "Amount", "Status", "Date"];
+    const rows = filteredData.map((row) => [
+      row.id,
+      row.customer,
+      row.product,
+      row.amount,
+      row.status,
+      row.date,
+    ]);
+
+    const csvContent =
+      "data:text/csv;charset=utf-8," +
+      [headers, ...rows].map((e) => e.join(",")).join("\n");
+
+    const link = document.createElement("a");
+    link.setAttribute("href", encodeURI(csvContent));
+    link.setAttribute("download", "orders_data.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const resetFilter = () => {
+    setSearchCustomer("");
+    setSearchProduct("");
+    setStatusFilter("All");
+    setDateRange({
+      from: new Date(),
+    });
   };
 
   return (
@@ -207,8 +285,83 @@ const page = () => {
 
       {/* Orders Table */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-col gap-4">
           <CardTitle>All Orders</CardTitle>
+
+          {/* Filters */}
+          <div className="flex flex-wrap gap-2 md:gap-4 md:items-center w-full">
+            {/* Search */}
+            <Input
+              placeholder="Search customer..."
+              value={searchCustomer}
+              onChange={(e) => setSearchCustomer(e.target.value)}
+              className="max-w-[200px] w-full"
+            />
+            <Input
+              placeholder="Search product..."
+              value={searchProduct}
+              onChange={(e) => setSearchProduct(e.target.value)}
+              className="max-w-[200px] w-full"
+            />
+            {/* Date Range */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="max-w-[200px] w-full justify-start text-left"
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dateRange.from && dateRange.to
+                    ? `${format(dateRange.from, "MM d, yy")} - ${format(
+                        dateRange.to,
+                        "MM d, yy"
+                      )}`
+                    : "Pick a date range"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent>
+                <Calendar
+                  mode="range"
+                  selected={dateRange}
+                  onSelect={setDateRange}
+                  numberOfMonths={1}
+                />
+              </PopoverContent>
+            </Popover>
+
+            {/* Status */}
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="max-w-[200px] w-full">
+                <SelectValue placeholder="Filter by Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All">All</SelectItem>
+                <SelectItem value="Delivered">Delivered</SelectItem>
+                <SelectItem value="Pending">Pending</SelectItem>
+                <SelectItem value="Shipped">Shipped</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Export */}
+            <Button
+              onClick={exportToCSV}
+              variant="outline"
+              className="max-w-[100px] w-full"
+            >
+              <Download className="mr-1 h-4 w-4" />
+              Export
+            </Button>
+
+            {/* Reset */}
+            <Button
+              onClick={resetFilter}
+              variant="outline"
+              className="max-w-[100px] w-full"
+            >
+              <Undo2 className="mr-1 h-4 w-4" />
+              Reset
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
@@ -224,7 +377,7 @@ const page = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {orders.map((order) => (
+              {filteredData.map((order) => (
                 <TableRow key={order.id}>
                   <TableCell>{order.id}</TableCell>
                   <TableCell>{order.customer}</TableCell>
@@ -250,12 +403,12 @@ const page = () => {
                       size="sm"
                       onClick={() => handleEdit(order)}
                     >
-                      Edit
+                      <Edit className="w-4 h-4" />
                     </Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button variant="destructive" size="sm">
-                          Delete
+                          <Trash2 className="w-4 h-4" />
                         </Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>
