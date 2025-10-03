@@ -22,6 +22,7 @@ import { useTheme } from "next-themes";
 import { SidebarTrigger } from "./ui/sidebar";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import { switchUser } from "@/redux/slices/userSlice";
+import Link from "next/link";
 
 type Props = {};
 
@@ -80,10 +81,12 @@ const Navbar = (props: Props) => {
               <User className="h-[1.2rem] w-[1.2rem] mr-2" />
               Profile
             </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer">
-              <Settings className="h-[1.2rem] w-[1.2rem] mr-2" />
-              Settings
-            </DropdownMenuItem>
+            <Link href="/settings">
+              <DropdownMenuItem className="cursor-pointer">
+                <Settings className="h-[1.2rem] w-[1.2rem] mr-2" />
+                Settings
+              </DropdownMenuItem>
+            </Link>
             <DropdownMenuItem className="cursor-pointer" variant="destructive">
               <LogOut className="h-[1.2rem] w-[1.2rem] mr-2" />
               Logout
