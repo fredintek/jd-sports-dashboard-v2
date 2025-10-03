@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -37,7 +37,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Edit, Trash2, Key } from "lucide-react";
+import { Plus, Edit, Trash2, Key, Undo2, Download } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import {
   addUser,
@@ -45,21 +45,55 @@ import {
   updateUser,
   User,
 } from "@/redux/slices/userSlice";
+import { format } from "date-fns";
 
 export default function UsersPage() {
   const stateUser = useAppSelector((state) => state.user);
   const dispatch = useAppDispatch();
   const [users, setUsers] = useState<User[]>(stateUser.users);
-  const [search, setSearch] = useState("");
+  const [searchUser, setSearchUser] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isNewUserDialogOpen, setIsNewUserDialogOpen] = useState(false);
   const [deleteUserId, setDeleteUserId] = useState<number | null>(null);
 
-  const filteredUsers = users.filter(
-    (u) =>
-      u.name.toLowerCase().includes(search.toLowerCase()) ||
-      u.email.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredData = useMemo(() => {
+    return users.filter((row) => {
+      const matchesStatus =
+        statusFilter === "All" ? true : row.status === statusFilter;
+      const matchesCustomer = row.name
+        .toLowerCase()
+        .includes(searchUser.toLowerCase());
+      return matchesStatus && matchesCustomer;
+    });
+  }, [statusFilter, searchUser]);
+
+  const exportToCSV = () => {
+    const headers = ["Name", "Email", "Role", "Status", "Last Login"];
+    const rows = filteredData.map((row) => [
+      row.name,
+      row.email,
+      row.role,
+      row.status,
+      row.lastLogin,
+    ]);
+
+    const csvContent =
+      "data:text/csv;charset=utf-8," +
+      [headers, ...rows].map((e) => e.join(",")).join("\n");
+
+    const link = document.createElement("a");
+    link.setAttribute("href", encodeURI(csvContent));
+    link.setAttribute("download", "users_data.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const resetFilter = () => {
+    setSearchUser("");
+    setStatusFilter("All");
+  };
 
   const handleAddUser = (user: Omit<User, "id">) => {
     dispatch(addUser({ ...user }));
@@ -87,23 +121,50 @@ export default function UsersPage() {
     <div className="p-6 space-y-6">
       {/* Header */}
       <Card>
-        <CardHeader className="flex flex-col">
-          <div className="flex items-center justify-between w-full">
-            <CardTitle>Users</CardTitle>
-            <div className="flex gap-2">
-              <Input
-                placeholder="Search users..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-64"
-              />
-              <Button onClick={() => setIsNewUserDialogOpen(true)}>
-                <Plus className="w-4 h-4 mr-2" /> Add User
-              </Button>
-            </div>
-          </div>
+        <CardHeader className="flex flex-col gap-4">
+          <CardTitle>Users</CardTitle>
+          {/* Filters */}
+          <div className="flex flex-wrap gap-2 md:gap-4 md:items-center w-full">
+            {/* Search */}
+            <Input
+              placeholder="Search user..."
+              value={searchUser}
+              onChange={(e) => setSearchUser(e.target.value)}
+              className="max-w-[200px] w-full"
+            />
 
-          {/* FILTERS GOES HERE */}
+            {/* Status */}
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="max-w-[200px] w-full">
+                <SelectValue placeholder="Filter by Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All">All</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Export */}
+            <Button
+              onClick={exportToCSV}
+              variant="outline"
+              className="max-w-[100px] w-full"
+            >
+              <Download className="mr-1 h-4 w-4" />
+              Export
+            </Button>
+
+            {/* Reset */}
+            <Button
+              onClick={resetFilter}
+              variant="outline"
+              className="max-w-[100px] w-full"
+            >
+              <Undo2 className="mr-1 h-4 w-4" />
+              Reset
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
@@ -113,13 +174,14 @@ export default function UsersPage() {
                 <TableHead>Email</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Last Login</TableHead>
                 {stateUser?.activeUser?.role !== "user" && (
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>Actions</TableHead>
                 )}
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredUsers.map((u) => (
+              {filteredData.map((u) => (
                 <TableRow key={u.id}>
                   <TableCell>{u.name}</TableCell>
                   <TableCell>{u.email}</TableCell>
@@ -135,8 +197,13 @@ export default function UsersPage() {
                       {u.status}
                     </Badge>
                   </TableCell>
+                  <TableCell>
+                    {u.lastLogin
+                      ? `${format(new Date(u.lastLogin), "MM/dd/yyyy hh:mm a")}`
+                      : "null"}
+                  </TableCell>
                   {stateUser?.activeUser?.role !== "user" && (
-                    <TableCell className="text-right space-x-2">
+                    <TableCell className="space-x-2">
                       <Button
                         size="sm"
                         variant="outline"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -14,7 +14,16 @@ import {
 } from "@/components/ui/table";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Search, Edit, Key, Trash2, FileText, EyeIcon } from "lucide-react";
+import {
+  Search,
+  Edit,
+  Key,
+  Trash2,
+  FileText,
+  EyeIcon,
+  Download,
+  Undo2,
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -35,6 +44,14 @@ import {
 } from "@/components/ui/alert-dialog";
 import toast, { Toaster } from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import { format } from "date-fns";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type Customer = {
   id: string;
@@ -43,6 +60,7 @@ type Customer = {
   phone: string;
   status: "Active" | "Inactive" | "Banned";
   joined: string;
+  lastLogin?: string | null;
   orders: number;
   avatar?: string;
 };
@@ -55,6 +73,7 @@ const initialCustomers: Customer[] = [
     phone: "+1 555-1234",
     status: "Active",
     joined: "2024-06-01",
+    lastLogin: "2025-09-30T06:13:06.970Z",
     orders: 12,
   },
   {
@@ -63,25 +82,68 @@ const initialCustomers: Customer[] = [
     email: "jane@example.com",
     phone: "+1 555-5678",
     status: "Banned",
+    lastLogin: "2025-09-30T06:13:06.970Z",
     joined: "2024-07-15",
     orders: 5,
   },
 ];
 
 export default function CustomersPage() {
-  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [searchCustomer, setSearchCustomer] = useState("");
   const [customers, setCustomers] = useState(initialCustomers);
   const [deleteCustomer, setDeleteCustomer] = useState<Customer | null>(null);
   const [editCustomer, setEditCustomer] = useState<Customer | null>(null);
   const router = useRouter();
 
-  // Filter customers based on search
-  const filtered = customers.filter(
-    (c) =>
-      c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.email.toLowerCase().includes(search.toLowerCase()) ||
-      c.phone.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredData = useMemo(() => {
+    return customers.filter((row) => {
+      const matchesStatus =
+        statusFilter === "All" ? true : row.status === statusFilter;
+      const matchesCustomer = row.name
+        .toLowerCase()
+        .includes(searchCustomer.toLowerCase());
+
+      return matchesStatus && matchesCustomer;
+    });
+  }, [customers, statusFilter, searchCustomer]);
+
+  const exportToCSV = () => {
+    const headers = [
+      "Name",
+      "Email",
+      "Phone",
+      "Status",
+      "Joined",
+      "Last Login",
+      "Orders",
+    ];
+    const rows = filteredData.map((row) => [
+      row.name,
+      row.email,
+      row.phone,
+      row.status,
+      row.joined,
+      row.lastLogin,
+      row.orders,
+    ]);
+
+    const csvContent =
+      "data:text/csv;charset=utf-8," +
+      [headers, ...rows].map((e) => e.join(",")).join("\n");
+
+    const link = document.createElement("a");
+    link.setAttribute("href", encodeURI(csvContent));
+    link.setAttribute("download", "customer_data.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const resetFilter = () => {
+    setSearchCustomer("");
+    setStatusFilter("All");
+  };
 
   const handleDelete = (id: string) => {
     setCustomers((prev) => prev.filter((c) => c.id !== id));
@@ -105,9 +167,51 @@ export default function CustomersPage() {
       <Toaster position="top-right" />
       {/* Header */}
       <Card>
-        <CardHeader className="flex flex-row justify-between items-center">
+        <CardHeader className="flex flex-col gap-4">
           <CardTitle>Customers</CardTitle>
-          <div className="flex gap-2">
+          {/* Filters */}
+          <div className="flex flex-wrap gap-2 md:gap-4 md:items-center w-full">
+            {/* Search */}
+            <Input
+              placeholder="Search customer..."
+              value={searchCustomer}
+              onChange={(e) => setSearchCustomer(e.target.value)}
+              className="max-w-[200px] w-full"
+            />
+
+            {/* Status */}
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="max-w-[200px] w-full">
+                <SelectValue placeholder="Filter by Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All">All</SelectItem>
+                <SelectItem value="Active">Active</SelectItem>
+                <SelectItem value="Banned">Banned</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Export */}
+            <Button
+              onClick={exportToCSV}
+              variant="outline"
+              className="max-w-[100px] w-full"
+            >
+              <Download className="mr-1 h-4 w-4" />
+              Export
+            </Button>
+
+            {/* Reset */}
+            <Button
+              onClick={resetFilter}
+              variant="outline"
+              className="max-w-[100px] w-full"
+            >
+              <Undo2 className="mr-1 h-4 w-4" />
+              Reset
+            </Button>
+          </div>
+          {/* <div className="flex gap-2">
             <Input
               placeholder="Search customers..."
               value={search}
@@ -117,7 +221,7 @@ export default function CustomersPage() {
             <Button variant="outline">
               <Search className="h-4 w-4 mr-2" /> Search
             </Button>
-          </div>
+          </div> */}
         </CardHeader>
 
         <CardContent>
@@ -129,12 +233,13 @@ export default function CustomersPage() {
                 <TableHead>Phone</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Joined</TableHead>
+                <TableHead>Last Login</TableHead>
                 <TableHead>Orders</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map((c) => (
+              {filteredData.map((c) => (
                 <TableRow key={c.id}>
                   <TableCell className="flex items-center gap-2">
                     <Avatar>
@@ -155,8 +260,13 @@ export default function CustomersPage() {
                     </Badge>
                   </TableCell>
                   <TableCell>{c.joined}</TableCell>
+                  <TableCell>
+                    {c.lastLogin
+                      ? `${format(new Date(c.lastLogin), "MM/dd/yyyy hh:mm a")}`
+                      : "null"}
+                  </TableCell>
                   <TableCell>{c.orders}</TableCell>
-                  <TableCell className="text-right space-x-2">
+                  <TableCell className="space-x-2">
                     <Button
                       variant="outline"
                       size="sm"

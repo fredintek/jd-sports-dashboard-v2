@@ -9,6 +9,7 @@ export type User = {
   email: string;
   phone: string;
   image: string;
+  lastLogin?: string | null;
   status: UserStatus;
   role: UserRole;
 };
@@ -27,6 +28,7 @@ const initialState: UserState = {
       phone: "+1 555-111-2222",
       status: "active",
       role: "admin",
+      lastLogin: "2025-09-30T06:13:06.970Z",
       image:
         "https://plus.unsplash.com/premium_photo-1689551670902-19b441a6afde?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8d29tYW58ZW58MHx8MHx8fDA%3D",
     },
@@ -37,6 +39,7 @@ const initialState: UserState = {
       phone: "+1 555-333-4444",
       status: "active",
       role: "editor",
+      lastLogin: "2025-09-30T06:13:06.970Z",
       image:
         "https://plus.unsplash.com/premium_photo-1671656349322-41de944d259b?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8bWFufGVufDB8fDB8fHww",
     },
@@ -47,6 +50,7 @@ const initialState: UserState = {
       phone: "+1 555-555-6666",
       status: "inactive",
       role: "user",
+      lastLogin: "2025-09-30T06:13:06.970Z",
       image:
         "https://images.unsplash.com/photo-1615109398623-88346a601842?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8bWFufGVufDB8fDB8fHww",
     },
@@ -58,6 +62,7 @@ const initialState: UserState = {
     phone: "+1 555-111-2222",
     status: "active",
     role: "admin",
+    lastLogin: "2025-09-30T06:13:06.970Z",
     image:
       "https://plus.unsplash.com/premium_photo-1689551670902-19b441a6afde?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8d29tYW58ZW58MHx8MHx8fDA%3D",
   },
