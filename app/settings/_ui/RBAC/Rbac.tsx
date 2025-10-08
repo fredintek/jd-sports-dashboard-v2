@@ -51,7 +51,6 @@ const variantColor: Record<
 
 const Rbac = ({ permissions, setPermissions }: Props) => {
   const [roles, setRoles] = useState<Role[]>(mockRoles);
-  console.log("roles", roles);
   const [editingRole, setEditingRole] = useState<Role | null>(null);
 
   const handleSave = (updatedRole: Role) => {
