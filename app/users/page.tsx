@@ -144,8 +144,6 @@ export default function UsersPage() {
     setAddUserForm({ name: "", email: "", roleId: "" });
   };
 
-  console.log("filteredData", filteredData);
-
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
