@@ -12,7 +12,7 @@ import createWebStorage from "redux-persist/lib/storage/createWebStorage";
 import { setupListeners } from "@reduxjs/toolkit/query";
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
 import apiSlice from "./api";
-import { categorySlice, productSlice, userSlice } from "./slices";
+import { categorySlice, productSlice, roleSlice, userSlice } from "./slices";
 type NoopStorage = {
   getItem: (key: string) => Promise<null>;
   setItem: (key: string, value: string) => Promise<any>;
@@ -50,6 +50,7 @@ const rootReducer = combineReducers({
   product: productSlice,
   category: categorySlice,
   user: userSlice,
+  roles: roleSlice,
 });
 
 // persist reducer

@@ -1,6 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-export type UserRole = "admin" | "editor" | "user";
 export type UserStatus = "active" | "inactive";
 
 export type User = {
@@ -11,7 +10,7 @@ export type User = {
   image: string;
   lastLogin?: string | null;
   status: UserStatus;
-  role: UserRole;
+  roleId: string;
 };
 
 type UserState = {
@@ -20,52 +19,43 @@ type UserState = {
 };
 
 const initialState: UserState = {
-  users: [
-    {
-      id: 1,
-      name: "Alice Johnson",
-      email: "alice.admin@example.com",
-      phone: "+1 555-111-2222",
-      status: "active",
-      role: "admin",
-      lastLogin: "2025-09-30T06:13:06.970Z",
-      image:
-        "https://plus.unsplash.com/premium_photo-1689551670902-19b441a6afde?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8d29tYW58ZW58MHx8MHx8fDA%3D",
-    },
-    {
-      id: 2,
-      name: "Bob Smith",
-      email: "bob.editor@example.com",
-      phone: "+1 555-333-4444",
-      status: "active",
-      role: "editor",
-      lastLogin: "2025-09-30T06:13:06.970Z",
-      image:
-        "https://plus.unsplash.com/premium_photo-1671656349322-41de944d259b?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8bWFufGVufDB8fDB8fHww",
-    },
-    {
-      id: 3,
-      name: "Charlie Davis",
-      email: "charlie.user@example.com",
-      phone: "+1 555-555-6666",
-      status: "inactive",
-      role: "user",
-      lastLogin: "2025-09-30T06:13:06.970Z",
-      image:
-        "https://images.unsplash.com/photo-1615109398623-88346a601842?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8bWFufGVufDB8fDB8fHww",
-    },
-  ],
-  activeUser: {
-    id: 1,
-    name: "Alice Johnson",
-    email: "alice.admin@example.com",
-    phone: "+1 555-111-2222",
-    status: "active",
-    role: "admin",
-    lastLogin: "2025-09-30T06:13:06.970Z",
-    image:
-      "https://plus.unsplash.com/premium_photo-1689551670902-19b441a6afde?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8d29tYW58ZW58MHx8MHx8fDA%3D",
-  },
+  // users: [
+  //   {
+  //     id: 1,
+  //     name: "Alice Johnson",
+  //     email: "alice.admin@example.com",
+  //     phone: "+1 555-111-2222",
+  //     status: "active",
+  //     roleId: "admin-role-id",
+  //     lastLogin: "2025-09-30T06:13:06.970Z",
+  //     image:
+  //       "https://plus.unsplash.com/premium_photo-1689551670902-19b441a6afde?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8d29tYW58ZW58MHx8MHx8fDA%3D",
+  //   },
+  //   {
+  //     id: 2,
+  //     name: "Bob Smith",
+  //     email: "bob.editor@example.com",
+  //     phone: "+1 555-333-4444",
+  //     status: "active",
+  //     roleId: "editor-role-id",
+  //     lastLogin: "2025-09-30T06:13:06.970Z",
+  //     image:
+  //       "https://plus.unsplash.com/premium_photo-1671656349322-41de944d259b?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8bWFufGVufDB8fDB8fHww",
+  //   },
+  // ],
+  // activeUser: {
+  //   id: 1,
+  //   name: "Alice Johnson",
+  //   email: "alice.admin@example.com",
+  //   phone: "+1 555-111-2222",
+  //   status: "active",
+  //   roleId: "admin-role-id",
+  //   lastLogin: "2025-09-30T06:13:06.970Z",
+  //   image:
+  //     "https://plus.unsplash.com/premium_photo-1689551670902-19b441a6afde?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8d29tYW58ZW58MHx8MHx8fDA%3D",
+  // },
+  users: [],
+  activeUser: null,
 };
 
 const userSlice = createSlice({

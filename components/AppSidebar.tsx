@@ -19,6 +19,7 @@ import {
   LocateFixed,
   Megaphone,
   Newspaper,
+  Notebook,
   QrCode,
   ShoppingBag,
   ShoppingCart,
@@ -79,6 +80,12 @@ const items = [
     title: "All Transactions",
     url: "/transactions",
     icon: ArrowLeftRight,
+    group: "main menu",
+  },
+  {
+    title: "Roles",
+    url: "/roles",
+    icon: Notebook,
     group: "main menu",
   },
 

@@ -50,15 +50,20 @@ import { format } from "date-fns";
 export default function UsersPage() {
   const stateUser = useAppSelector((state) => state.user);
   const dispatch = useAppDispatch();
-  const [users, setUsers] = useState<User[]>(stateUser.users);
+  const roles = useAppSelector((state) => state.roles.roles);
   const [searchUser, setSearchUser] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isNewUserDialogOpen, setIsNewUserDialogOpen] = useState(false);
   const [deleteUserId, setDeleteUserId] = useState<number | null>(null);
+  const [addUserForm, setAddUserForm] = useState({
+    name: "",
+    email: "",
+    roleId: "",
+  });
 
   const filteredData = useMemo(() => {
-    return users.filter((row) => {
+    return stateUser.users.filter((row) => {
       const matchesStatus =
         statusFilter === "All" ? true : row.status === statusFilter;
       const matchesCustomer = row.name
@@ -66,14 +71,14 @@ export default function UsersPage() {
         .includes(searchUser.toLowerCase());
       return matchesStatus && matchesCustomer;
     });
-  }, [statusFilter, searchUser]);
+  }, [statusFilter, searchUser, stateUser.users]);
 
   const exportToCSV = () => {
     const headers = ["Name", "Email", "Role", "Status", "Last Login"];
     const rows = filteredData.map((row) => [
       row.name,
       row.email,
-      row.role,
+      row.roleId,
       row.status,
       row.lastLogin,
     ]);
@@ -95,12 +100,6 @@ export default function UsersPage() {
     setStatusFilter("All");
   };
 
-  const handleAddUser = (user: Omit<User, "id">) => {
-    dispatch(addUser({ ...user }));
-    toast.success("User created successfully");
-    setIsNewUserDialogOpen(false);
-  };
-
   const handleEditUser = (updated: User) => {
     dispatch(updateUser(updated));
     toast.success("User updated successfully");
@@ -117,52 +116,94 @@ export default function UsersPage() {
     toast.success(`Password reset email sent to ${user.email}`);
   };
 
+  const getUserRole = (roleId: string) => roles.find((r) => r.id === roleId);
+
+  const handleAddUserChange = (key: string, value: string) => {
+    setAddUserForm((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleCreateUser = () => {
+    if (!addUserForm.name || !addUserForm.email || !addUserForm.roleId) {
+      toast.error("Please fill all fields");
+      return;
+    }
+
+    dispatch(
+      addUser({
+        name: addUserForm.name,
+        email: addUserForm.email,
+        roleId: addUserForm.roleId,
+        status: "active",
+        image: "",
+        phone: "+90 633 773 8383",
+        lastLogin: new Date().toISOString(),
+      })
+    );
+    toast.success("User created successfully");
+    setIsNewUserDialogOpen(false);
+    setAddUserForm({ name: "", email: "", roleId: "" });
+  };
+
+  console.log("filteredData", filteredData);
+
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
       <Card>
         <CardHeader className="flex flex-col gap-4">
           <CardTitle>Users</CardTitle>
-          {/* Filters */}
-          <div className="flex flex-wrap gap-2 md:gap-4 md:items-center w-full">
-            {/* Search */}
-            <Input
-              placeholder="Search user..."
-              value={searchUser}
-              onChange={(e) => setSearchUser(e.target.value)}
-              className="max-w-[200px] w-full"
-            />
+          <div className="flex items-center justify-between w-full">
+            {/* Filters */}
+            <div className="flex-1 flex flex-wrap gap-2 md:gap-4 md:items-center">
+              {/* Search */}
+              <Input
+                placeholder="Search user..."
+                value={searchUser}
+                onChange={(e) => setSearchUser(e.target.value)}
+                className="max-w-[200px] w-full"
+              />
 
-            {/* Status */}
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="max-w-[200px] w-full">
-                <SelectValue placeholder="Filter by Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="All">All</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
-              </SelectContent>
-            </Select>
+              {/* Status */}
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="max-w-[200px] w-full">
+                  <SelectValue placeholder="Filter by Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="All">All</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
 
-            {/* Export */}
+              {/* Export */}
+              <Button
+                onClick={exportToCSV}
+                variant="outline"
+                className="max-w-[100px] w-full"
+              >
+                <Download className="mr-1 h-4 w-4" />
+                Export
+              </Button>
+
+              {/* Reset */}
+              <Button
+                onClick={resetFilter}
+                variant="outline"
+                className="max-w-[100px] w-full"
+              >
+                <Undo2 className="mr-1 h-4 w-4" />
+                Reset
+              </Button>
+            </div>
+
             <Button
-              onClick={exportToCSV}
-              variant="outline"
-              className="max-w-[100px] w-full"
+              size="sm"
+              variant="default"
+              onClick={() => setIsNewUserDialogOpen(true)}
+              className=""
             >
-              <Download className="mr-1 h-4 w-4" />
-              Export
-            </Button>
-
-            {/* Reset */}
-            <Button
-              onClick={resetFilter}
-              variant="outline"
-              className="max-w-[100px] w-full"
-            >
-              <Undo2 className="mr-1 h-4 w-4" />
-              Reset
+              <Plus className="w-4 h-4" />
+              Create User
             </Button>
           </div>
         </CardHeader>
@@ -175,34 +216,36 @@ export default function UsersPage() {
                 <TableHead>Role</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Last Login</TableHead>
-                {stateUser?.activeUser?.role !== "user" && (
-                  <TableHead>Actions</TableHead>
-                )}
+                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredData.map((u) => (
-                <TableRow key={u.id}>
-                  <TableCell>{u.name}</TableCell>
-                  <TableCell>{u.email}</TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">{u.role}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={
-                        u.status === "active" ? "default" : "destructive"
-                      }
-                    >
-                      {u.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {u.lastLogin
-                      ? `${format(new Date(u.lastLogin), "MM/dd/yyyy hh:mm a")}`
-                      : "null"}
-                  </TableCell>
-                  {stateUser?.activeUser?.role !== "user" && (
+              {filteredData.map((u) => {
+                const role = getUserRole(u.roleId);
+                return (
+                  <TableRow key={u.id}>
+                    <TableCell>{u.name}</TableCell>
+                    <TableCell>{u.email}</TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">{role?.name || "N/A"}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={
+                          u.status === "active" ? "default" : "destructive"
+                        }
+                      >
+                        {u.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {u.lastLogin
+                        ? `${format(
+                            new Date(u.lastLogin),
+                            "MM/dd/yyyy hh:mm a"
+                          )}`
+                        : "null"}
+                    </TableCell>
                     <TableCell className="space-x-2">
                       <Button
                         size="sm"
@@ -211,28 +254,26 @@ export default function UsersPage() {
                       >
                         <Edit className="w-4 h-4" />
                       </Button>
-                      {stateUser?.activeUser?.role !== "editor" && (
-                        <>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => setDeleteUserId(u.id)}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="secondary"
-                            onClick={() => handleResetPassword(u)}
-                          >
-                            <Key className="w-4 h-4" /> Reset Password
-                          </Button>
-                        </>
-                      )}
+                      <>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => setDeleteUserId(u.id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => handleResetPassword(u)}
+                        >
+                          <Key className="w-4 h-4" /> Reset Password
+                        </Button>
+                      </>
                     </TableCell>
-                  )}
-                </TableRow>
-              ))}
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </CardContent>
@@ -261,11 +302,11 @@ export default function UsersPage() {
                 }
               />
               <Select
-                value={selectedUser.role}
+                value={selectedUser.roleId}
                 onValueChange={(value) =>
                   setSelectedUser({
                     ...selectedUser,
-                    role: value as User["role"],
+                    roleId: value,
                   })
                 }
               >
@@ -273,9 +314,11 @@ export default function UsersPage() {
                   <SelectValue placeholder="Select Role" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="editor">Editor</SelectItem>
-                  <SelectItem value="user">User</SelectItem>
+                  {roles?.map((role, idx: number) => (
+                    <SelectItem key={idx} value={role.id}>
+                      {role.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <Button
@@ -299,37 +342,30 @@ export default function UsersPage() {
             <DialogTitle>Add New User</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <Input placeholder="Name" id="new-name" />
-            <Input placeholder="Email" id="new-email" />
-            <Select>
+            <Input
+              placeholder="Name"
+              onChange={(e) => handleAddUserChange("name", e.target.value)}
+            />
+            <Input
+              placeholder="Email"
+              onChange={(e) => handleAddUserChange("email", e.target.value)}
+            />
+            <Select
+              value={addUserForm.roleId}
+              onValueChange={(value) => handleAddUserChange("roleId", value)}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select Role" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Admin">Admin</SelectItem>
-                <SelectItem value="Editor">Editor</SelectItem>
-                <SelectItem value="User">User</SelectItem>
+              <SelectContent id="new-role">
+                {roles?.map((role, idx: number) => (
+                  <SelectItem key={idx} value={role.id}>
+                    {role.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
-            <Button
-              className="mt-2"
-              onClick={() =>
-                handleAddUser({
-                  name: (
-                    document.getElementById("new-name") as HTMLInputElement
-                  ).value,
-                  email: (
-                    document.getElementById("new-email") as HTMLInputElement
-                  ).value,
-                  role: (
-                    document.getElementById("new-role") as HTMLSelectElement
-                  ).value as User["role"],
-                  status: "active",
-                  image: "",
-                  phone: "+90 633 773 8383",
-                })
-              }
-            >
+            <Button className="mt-2" onClick={handleCreateUser}>
               Create
             </Button>
           </div>
